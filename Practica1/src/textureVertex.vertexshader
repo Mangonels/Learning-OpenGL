@@ -1,0 +1,22 @@
+#version 330 core
+
+//input data:
+
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 color;
+layout (location = 2) in vec2 texCoord;
+
+// Ouput data:
+
+out vec2 textureCoords;
+out vec3 theColor;
+
+uniform mat4 transform;
+
+void main(){
+
+	gl_Position = transform * vec4(position, 1.0f); //Aplicar transformación sobre posición para definir posicion.
+	textureCoords = vec2(texCoord.x, 1.0f - texCoord.y); //Esto invierte la imagen, restando la altura de una textura (1) a la altura en Y del vertice de textura: 1- Y
+	theColor = color;
+}
+

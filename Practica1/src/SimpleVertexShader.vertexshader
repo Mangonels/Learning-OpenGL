@@ -1,0 +1,45 @@
+#version 330 core
+
+//SVS funciona especificando vertices, los quales son parseados de 1 a 1 en cada iteración.
+//A eso se deben los if's del main en este caso, que estan comprobando las coordenadas de cada vertice
+//para realizar la acción pertinente.
+
+//Input data:
+layout(location = 0) in vec3 vertexPosition_modelspace;
+
+uniform float offset;
+uniform float verde;
+uniform float rojo;
+
+//Optput data: (Sent to SimpleFragmentShader)
+out vec3 vertexPos;
+out vec4 vertexColor;
+
+void main(){
+
+	if(vertexPosition_modelspace.y > 0){ //No modificar, porque estan por encima del eje X: +Y
+		vertexColor = vec4(0.f, 0.7f, 0.7f, 1.f); //Aplica un color a los vertices que esten por encima del eje X
+		gl_Position = vec4(vertexPosition_modelspace, 1.0); //Que no se mueva el vertice
+	}
+	else
+	{ //Mover vertices segun offset, porque estan por debajo del eje X: -Y
+		vertexColor = vec4(rojo, verde, 0.0f, 1.f); //Aplica un color a los vertices que esten por debajo del eje X
+		if(vertexPosition_modelspace.x > 0) //Es un vertice de la derecha
+		{
+		 //Offset positivo a la x para que se mueva a la derecha:
+			gl_Position = vec4(vertexPosition_modelspace.x + offset, vertexPosition_modelspace.y, 
+			vertexPosition_modelspace.z, 1.0);
+		}
+		else if(vertexPosition_modelspace.x < 0) //Es un vertice de la izquierda
+		{
+		//Offset negativo a la x para que se mueva a la izquierda
+			gl_Position = vec4(vertexPosition_modelspace.x - offset, vertexPosition_modelspace.y,
+			vertexPosition_modelspace.z, 1.0); 
+		}
+	}
+	
+		vertexPos = vertexPosition_modelspace.xyz;
+	
+}
+
+//offset es un valor mayor a 0.005 <5 >0 generado y transferido desde main.cpp

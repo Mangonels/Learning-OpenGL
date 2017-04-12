@@ -1,0 +1,24 @@
+#version 330 core
+
+//input data:
+
+in vec2 textureCoords;
+in vec3 theColor;
+
+// Ouput data:
+
+out vec4 color;
+
+uniform sampler2D dirtTexture; //Contiene nuestra textura dirt
+uniform sampler2D ironTexture; //Contiene nuestra textura iron
+
+uniform float merge;
+
+void main(){
+	//Hacer que las texturas se intercambien progresivamente:
+		    //La función mix, combina 2 texturas tal que así, donde el último parametro es el nivel de combi:
+	color = mix(texture(dirtTexture, textureCoords), texture(ironTexture, textureCoords), merge);
+	
+	//Aplicar una sola textura como color:
+    //color = texture(dirtTexture, textureCoords); //texture sampler, texture coordinate
+}
