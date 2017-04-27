@@ -2,10 +2,7 @@
 
 #include "Shader.h"
 
-//GLEW
-#include <GL\glew.h>
-//GLFW
-#include <GLFW\glfw3.h>
+//Glew y Glfw ya incluidos en shader.h
 
 #include <string>
 #include <fstream>

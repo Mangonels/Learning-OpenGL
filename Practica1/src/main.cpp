@@ -18,17 +18,32 @@ using namespace std;
 //Nuestra clase shader:
 #include "../Shader.h"
 
+//Nuestra clase camara:
+#include "../Camara.h"
+
 const GLint WIDTH = 800, HEIGHT = 600; //Dimensiones de la ventana que creamos mas adelante
+
+
+//Invocación de la clase camara, para todas las funcionalidades de camara necesarias:
+//Los 2 primeros valores son puntos con los que la clase forma los vectores que necesitamos para la camara:
+Camara* camara = new Camara(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), 0.1f, 60.0f); //Posicion, Direccion, Sensibilidad de camara, fov de camara.
 
 bool wireframe = false; //Si la geometria deberia mostrarse en modo wireframe
 
 //Shaders para clipping 3D:
-const GLchar* vertexPath = "./src/clippingVertex.vertexshader";
-const GLchar* fragmentPath = "./src/clippingFragment.fragmentshader";
+const GLchar* vertexPath = "./src/Vertex.vertexshader";
+const GLchar* fragmentPath = "./src/Fragment.fragmentshader";
 
-//Cabeceras de funciones manager de inputs:
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode); //Función rasteadora de inputs por teclado en la ventana
-void mouse_callback(GLFWwindow* window, double mousePX, double mousePY); //Función rastreadora de inputs por ratón en la ventana
+//Definicion inicial de funciones manager de inputs:
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode); //Funcion rasteadora de inputs por teclado en la ventana 
+void mouse_move_input(GLFWwindow* window, double xpos, double ypos) 
+{
+	camara->MouseMove(xpos, ypos);
+}
+void mouse_scroll_input(GLFWwindow* window, double xOffset, double yOffset)
+{
+	camara->MouseScroll(xOffset, yOffset);
+}
 
 //Variables calculo de tiempo:
 GLfloat deltaTime = 0.0f;
@@ -48,16 +63,17 @@ float cubeAngleY = 1.0f;
 
 //Variables posición ratón (para camara)
 GLfloat mPrevX = WIDTH/2, mPrevY = HEIGHT/2; //Componentes posicion previa del raton
-bool cameraStart = true; //Este booleano se pone en false en la función mouse_callback enseguida que movemos el ratón, evitando así un salto de camara al inicio
 
 //Variables camara:
-	//Vectores
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); //-1.0 Z apuntará hacia los cubos
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	//Angulos (Se influencian con el raton)
-float pitch; //(Arriba-Abajo  ejes: Y-X/Z)
-float yaw; //(Izquierda-Derecha  ejes: Z/X)
+
+	//Angulos de camara iniciales (Se influencian con el raton)
+float pitch = 0.0f; //(Arriba-Abajo  ejes: Y-X/Z)
+float yaw = -90.0f; //(Izquierda-Derecha  ejes: Z/X)
+    //Variable que contiene el angulo de field of vision (la modificamos en el multi input):
+float fov = 60.0f;
+float fovSens = 2.0f;
+float minFov = 20.0f;
+float maxFov = 80.0f;
 
 static void error_callback(int error, const char* description)
 {
@@ -66,32 +82,16 @@ static void error_callback(int error, const char* description)
 
 bool keys[1024]; //Guarda que teclas se estan pulsando, ya que el sistema de input de glfw no puede procesar más de 1 tecla a la vez.
 
-void multiInputChecker() { //Función para revisar inputs simultaneos:
-	GLfloat cameraSpeed = 5.0f * deltaTime;
+void multiInputChecker() { //Función para revisar diversos inputs simultaneos:
 	
 	//Incrementar o decrementar combinación de texturas:
-	if (keys[GLFW_KEY_1] && merge < 1 || keys[GLFW_KEY_KP_1] && merge < 1) { //tecla 1
+	if (keys[GLFW_KEY_1] && merge < 0.950f || keys[GLFW_KEY_KP_1] && merge < 0.950f) { //tecla 1
 		merge += 0.005f;
 		cout << "Valor de mix: " << merge << endl;
 	}
-	if (keys[GLFW_KEY_2] && merge > 0.1 || keys[GLFW_KEY_KP_2] && merge > 0.005) { //tecla 2
+	if (keys[GLFW_KEY_2] && merge > 0.005f || keys[GLFW_KEY_KP_2] && merge > 0.005f) { //tecla 2
 		merge -= 0.005f;
 		cout << "Valor de mix: " << merge << endl;
-	}
-
-	//Inputs de movimiento de camara:
-
-	if (keys[GLFW_KEY_A]) { //Mirar si en el array de estados de key inputs esta activada esta key.
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; //Mover camara a izquierda = Restar a la posicion de la camara el cross product entre vector superior y delantero, dando así el vector perpendicular en el eje X. Todo esto se normaliza y se multiplica por la velocidad.
-	}
-	if (keys[GLFW_KEY_D]) {
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; //Mover camara a derecha = Lo mismo que izquierda pero restando.
-	}
-	if (keys[GLFW_KEY_W]) {
-		cameraPos += cameraSpeed * cameraFront; //Mover camara adelante = Sumar a la posición de la camara el vector Z * velocidad
-	}
-	if (keys[GLFW_KEY_S]) {
-		cameraPos -= cameraSpeed * cameraFront; //Mover camara atras = Restar a la posición de la camara el vector Z * velocidad
 	}
 
 	//Inputs de movimiento de cubo:
@@ -112,7 +112,6 @@ void multiInputChecker() { //Función para revisar inputs simultaneos:
 		cubeAngleX += 1.0f;
 		cout << "Grados de rotacion cubo 1 (Y): " << cubeAngleX << endl;
 	}
-
 }
 
 int main() {
@@ -148,9 +147,10 @@ int main() {
 		return NULL;
 	}
 
-	//Definición de funciones de rastreo de input:
-	glfwSetKeyCallback(window, key_callback); //Definición de función de input por teclado, Parametros: En que ventana se usará esta función, que función.
-	glfwSetCursorPosCallback(window, mouse_callback); //Definición de función de input por ratón, Parametros: En que ventana se usará esta función, que función.
+	//Definicion de funciones de rastreo de input (Determinar que funcion va a esperar inputs de que tipo): Parametros: En que ventana se usará esta función, que función.
+	glfwSetKeyCallback(window, key_callback); //Definicion de función de input por teclado
+	glfwSetCursorPosCallback(window, mouse_move_input); //Definicion de función de input por posicion de raton
+	glfwSetScrollCallback(window, mouse_scroll_input); //Definicion de funcion de input por scroll de raton
 
 	//set windows and viewport
 	int screenWidth, screenHeight;
@@ -306,6 +306,16 @@ int main() {
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - prevFrame;
 		prevFrame = currentFrame;
+		camara->SetDT(deltaTime); //Pasamos el delta time a la propiedad de la clase
+
+		//Mirar si se ha pulsado alguna tecla que mueva la posicion de la camara:
+		camara->DoMovement();
+
+		//Mirar si el raton se ha movido para consecuentemente mover la camara:
+		void mouse_move_input(GLFWwindow* window, double xpos, double ypos);
+
+		//Mirar si se ha usado el scroll para consecuentemente cambiar el fov de camara:
+		void mouse_scroll_input(GLFWwindow* window, double xOffset, double yOffset);
 
 		//--------------------------------------------
 		//ACTUALIZANDO ALGUNOS VALORES PARA EL SHADER:
@@ -315,7 +325,7 @@ int main() {
 		GLint wireLoc = glGetUniformLocation(myShader.Program, "wireframe");
 		glUniform1f(wireLoc, wireframe);
 
-		//Pasando el valor necesario para la función mixer del textureFragmentShader
+		//Pasando el valor necesario para la función mixer del Vertex.vertexshader
 		GLint mixValue = glGetUniformLocation(myShader.Program, "merge");
 		//Especifica el valor de una variable uniform para el objeto programa actual:
 		glUniform1f(mixValue, merge); //Localización, float
@@ -333,21 +343,6 @@ int main() {
 
 		myShader.USE();
 
-		//-----------------
-		//VARIABLES CAMARA
-		//-----------------
-		//La camara necesita 4 datos:
-		//Posicion:
-		//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f); //Localizacion de la camara
-		//												   //Direccion:
-		//glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f); //Punto al que mira la camara
-		//glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget); //Vector formado entre el punto central del escenario y la posición de la camara
-		//																	  //Eje derecho:
-		//glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); //Un vector (Por si solo no nos interesa) que multiplicamos vectorialmente por el vector direccion, obteniendo así el vector derecho:
-		//glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection)); //Eje X positivo de la camara (vector derecho) cross product normalizado.
-		//																		 //Eje vertical:
-		//glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight); //Se obtiene multiplicando el vector direccion por el vector derecho que hemos obtenido.
-
 		//----------
 		//VISTA 3D:
 		//----------
@@ -359,19 +354,19 @@ int main() {
 
 		//-> Matriz VISTA, pasa coordenadas de: MUNDO -> VISTA:
 		//Trasladamos la escena en la dirección contraria hacia donde queremos mover la camara, causando el efecto de que la camara se ha movido:
-		//GLfloat radius = 10.0f; //Rotación de camara automatica.
+		//GLfloat radius = 10.0f; //Para rotación de camara automatica.
 		//GLfloat camX = sin(glfwGetTime()) * radius; //Rotación de camara automatica.
 		//GLfloat camZ = cos(glfwGetTime()) * radius; //Rotación de camara automatica.
 		glm::mat4 view;
-		//view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)); //Rotación de camara automatica.
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		//view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)); //Activar esto hace rotar la camara automaticamente.
+		view = camara->LookAt();
 		GLint viewLoc = glGetUniformLocation(myShader.Program, "view");
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)); //<Pasar matriz al shader
 
 		//-> Matrz PROYECCION, define que tipo de proyeccion queremos:
 		//En este caso una perspectiva, que nos permitirá ver objetos en 3D con profundidad.
 		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(60.0f), (float)(screenWidth / screenHeight), 0.1f, 100.0f); //angulo de fov, tamaño pantalla (tiene que ser un float), plano near, plano far.
+		projection = glm::perspective(glm::radians(camara->GetFOV()), (float)(screenWidth / screenHeight), 0.1f, 100.0f); //angulo de fov, tamaño pantalla (tiene que ser un float), plano near, plano far.
 		GLint projLoc = glGetUniformLocation(myShader.Program, "projection");
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -447,42 +442,6 @@ int main() {
 
 	// Terminate GLFW, clearing any resources allocated by GLFW. No need for even returning 0.
 	exit(EXIT_SUCCESS);
-}
-
-void mouse_callback(GLFWwindow* window, double mPosX, double mPosY) {
-
-	//Actualizando diferencia entre posicion anterior y actual del ratón, guardada en mouseXdiff
-
-	if (cameraStart) { //Evita salto de camara al inicio
-		mPrevX = mPosX;
-		mPrevY = mPosY;
-		cameraStart = false;
-	}
-
-	GLfloat mouseDiffX = mPosX - mPrevX;
-	GLfloat mouseDiffY = mPrevY - mPosY;
-	mPrevX = mPosX;
-	mPrevY = mPosY;
-
-	GLfloat camSensitivity = 0.05f; //Esto controla la velocidad de movimiento de la camara, reduciendo la fuerza de diferencia de posiciones del ratón
-	mouseDiffX *= camSensitivity;
-	mouseDiffY *= camSensitivity;
-
-	//Aumentar los angulos yaw y pitch según el offset entre posiciones del ratón:
-	yaw = glm::mod(yaw + mouseDiffX, 360.0f); //Vamos a asegurarnos de que este valor no crece o decrementa demasiado con el mod de 360º
-	pitch += mouseDiffY;
-
-	//Limitador de angulo vertical de camara:
-	if (pitch > 89.0f) pitch = 89.0f;
-	if (pitch < -89.0f) pitch = -89.0f;
-
-	//Asignación de angulo de camara (Insercion de valores para el vector cameraFront que a su vez necesita la matriz lookAt):
-	glm::vec3 front;
-			//Calculo de angulo pitch(Y-X/Z):      Calculo de angulo yaw(Z-X):
-	front.x = cos(glm::radians(yaw))       *       cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw))       *       cos(glm::radians(pitch));
-	cameraFront = glm::normalize(front); //Normalizamos el vector y lo asignamos como eje frontal, que luego se aplica a la matriz lookAt. Aplicando así el angulo de camara!
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
