@@ -1,16 +1,6 @@
 ﻿  main.cpp
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.h(41): warning C4244: 'initializing': conversion from 'int' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.h(42): warning C4244: 'initializing': conversion from 'int' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\src\main.cpp(306): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-  Camara.cpp
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.h(41): warning C4244: 'initializing': conversion from 'int' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.h(42): warning C4244: 'initializing': conversion from 'int' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.cpp(59): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.cpp(60): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.cpp(64): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.cpp(65): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.cpp(66): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-f:\2n\informatica gràfica\cosas de opengl\practica1\camara.cpp(67): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
-  Generating Code...
-  Proyecto.vcxproj -> F:\2n\Informatica Gràfica\Cosas de OpenGL\Practica1\Debug\Practica1.exe
-  Proyecto.vcxproj -> F:\2n\Informatica Gràfica\Cosas de OpenGL\Practica1\Debug\Practica1.pdb (Full PDB)
+f:\2n\carga de modelo\practica1\camara.h(41): warning C4244: 'initializing': conversion from 'int' to 'GLfloat', possible loss of data
+f:\2n\carga de modelo\practica1\camara.h(42): warning C4244: 'initializing': conversion from 'int' to 'GLfloat', possible loss of data
+f:\2n\carga de modelo\practica1\src\main.cpp(156): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
+  Proyecto.vcxproj -> F:\2n\Carga de modelo\Practica1\Debug\Practica1.exe
+  Proyecto.vcxproj -> F:\2n\Carga de modelo\Practica1\Debug\Practica1.pdb (Full PDB)
