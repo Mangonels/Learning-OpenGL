@@ -15,17 +15,10 @@ using namespace std;
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
-//Nuestra clase shader:
+//Clases:
 #include "../Shader.h"
-
-//Nuestra clase camara:
 #include "../Camara.h"
-
-//Nuestra clase modelo:
-#include "../Model.h"
-//Modelos obj disponibles:
-
-int modelShown = 0; //Que modelo deberia mostrarse (0 a 2)
+#include "../Object.h"
 
 const GLint WIDTH = 800, HEIGHT = 600; //Dimensiones de la ventana que creamos mas adelante
 
@@ -33,6 +26,8 @@ const GLint WIDTH = 800, HEIGHT = 600; //Dimensiones de la ventana que creamos m
 //Invocación de la clase camara, para todas las funcionalidades de camara necesarias:
 //Los 2 primeros valores son puntos con los que la clase forma los vectores que necesitamos para la camara:
 Camara* camara = new Camara(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), 0.1f, 60.0f); //Posicion, Direccion, Sensibilidad de camara, fov de camara.
+
+bool wireframe = false; //Si la geometria deberia mostrarse en modo wireframe
 
 //Shaders para clipping 3D:
 const GLchar* vertexPath = "./src/Vertex.vertexshader";
@@ -68,10 +63,8 @@ float cubeAngleY = 1.0f;
 //Variables posición ratón (para camara)
 GLfloat mPrevX = WIDTH/2, mPrevY = HEIGHT/2; //Componentes posicion previa del raton
 
-//Guardador de teclas pulsadas:
-bool keys[1024];
-
 //Variables camara:
+
 	//Angulos de camara iniciales (Se influencian con el raton)
 float pitch = 0.0f; //(Arriba-Abajo  ejes: Y-X/Z)
 float yaw = -90.0f; //(Izquierda-Derecha  ejes: Z/X)
@@ -84,6 +77,40 @@ float maxFov = 80.0f;
 static void error_callback(int error, const char* description)
 {
 	fputs(description, stderr);
+}
+
+bool keys[1024]; //Guarda que teclas se estan pulsando, ya que el sistema de input de glfw no puede procesar más de 1 tecla a la vez.
+
+void multiInputChecker() { //Función para revisar diversos inputs simultaneos:
+	
+	//Incrementar o decrementar combinación de texturas:
+	if (keys[GLFW_KEY_1] && merge < 0.950f || keys[GLFW_KEY_KP_1] && merge < 0.950f) { //tecla 1
+		merge += 0.005f;
+		cout << "Valor de mix: " << merge << endl;
+	}
+	if (keys[GLFW_KEY_2] && merge > 0.005f || keys[GLFW_KEY_KP_2] && merge > 0.005f) { //tecla 2
+		merge -= 0.005f;
+		cout << "Valor de mix: " << merge << endl;
+	}
+
+	//Inputs de movimiento de cubo:
+
+	if (keys[GLFW_KEY_LEFT]) { // Izquierda
+		cubeAngleY -= 1.0f;
+		cout << "Grados de rotacion cubo 1 (X): " << cubeAngleY << endl;
+	}
+	if (keys[GLFW_KEY_RIGHT]) { // Derecha
+		cubeAngleY += 1.0f;
+		cout << "Grados de rotacion cubo 1 (X): " << cubeAngleY << endl;
+	}
+	if (keys[GLFW_KEY_UP]) { // Arriba
+		cubeAngleX -= 1.0f;
+		cout << "Grados de rotacion cubo 1 (Y): " << cubeAngleX << endl;
+	}
+	if (keys[GLFW_KEY_DOWN]) { // Abajo
+		cubeAngleX += 1.0f;
+		cout << "Grados de rotacion cubo 1 (Y): " << cubeAngleX << endl;
+	}
 }
 
 int main() {
@@ -133,24 +160,27 @@ int main() {
 	//Activar Z-Buffer (Buffer de profundidad de fragmentos)
 	glEnable(GL_DEPTH_TEST); //Esto comprobará que las caras de los poligonos no se fuckeen una encima de la otra, asegurando mostrar con prioridad las que están más cerca de la camara.
 
-	//Generando shaders:
+	//Shaders loading object:
 	Shader myShader = Shader::Shader(vertexPath, fragmentPath);
 
-	const GLchar *deer = "./3DModels/Deer/deer_obj/deer-obj.obj";
-	const GLchar *wuson = "./3DModels/spider/WusonOBJ.obj";
-	const GLchar *sofa = "./3DModels/Sofa/sofa_obj/sofa.obj";
-	//Cargando modelos:
-	Model myModel0 = Model::Model(deer);
-	Model myModel1 = Model::Model(wuson);
-	Model myModel2 = Model::Model(sofa);
+	//Generating cube object with transformations:
+	vec3 cubeScale = vec3(0.5, 0.5, 0.5);
+	vec3 cubeRotate = vec3(1, 1, 1);
+	vec3 cubeTranslate = vec3(-1.f, 0, 0);
+	Object cube(cubeScale, cubeRotate, cubeTranslate);
+
+	//Generating light cube object with transformations:
+	vec3 lightCubeScale = vec3(1, 1, 1);
+	vec3 lightCubeRotate = vec3(2, 2, 2);
+	vec3 lightCubeTranslate = vec3(3, 0, 0);
+	Object lightCube(lightCubeScale, lightCubeRotate, lightCubeTranslate);
 
 	//BUCLE DE DIBUJO:
 	while (!glfwWindowShouldClose(window))
 	{
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
-
-		glClearColor(1.0f,1.0f,1.0f,1.0f);
+		multiInputChecker(); //Llamando comprobación de inputs simultaneos
 
 		//Actualizando valores de tiempo:
 		GLfloat currentFrame = glfwGetTime();
@@ -167,88 +197,43 @@ int main() {
 		//Mirar si se ha usado el scroll para consecuentemente cambiar el fov de camara:
 		void mouse_scroll_input(GLFWwindow* window, double xOffset, double yOffset);
 
-		//--------------------------------------------
-		//ACTUALIZANDO ALGUNOS VALORES PARA EL SHADER:
-		//--------------------------------------------
-
 		myShader.USE();
 
-		//--------------------
-		//MATRICES DE ESPACIO:
-		//--------------------
+		//----------
+		//VISTA 3D:
+		//----------
 		//Convertir las coordenadas de nuestros vertices pasando por local > world > vew > clip, utilizando las matrizes modelo, vista y proyeccion en cada paso intermedio:
 
-		//-> Matriz VISTA <-, pasa coordenadas de: MUNDO -> VISTA:
+		//-> Matriz VISTA, pasa coordenadas de: MUNDO -> VISTA:
 		//Trasladamos la escena en la dirección contraria hacia donde queremos mover la camara, causando el efecto de que la camara se ha movido:
-		//GLfloat radius = 10.0f; //Para rotación de camara automatica.
-		//GLfloat camX = sin(glfwGetTime()) * radius; //Rotación de camara automatica.
-		//GLfloat camZ = cos(glfwGetTime()) * radius; //Rotación de camara automatica.
 		glm::mat4 view;
-		//view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)); //Activar esto hace rotar la camara automaticamente.
-		view = camara->LookAt(); //La matriz view sera el output del metodo lookat de la clase camara.
+		view = camara->LookAt();
 		GLint viewLoc = glGetUniformLocation(myShader.Program, "view");
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)); //<Pasar matriz al shader
 
-		//-> Matrz PROYECCION <-, define que tipo de proyeccion queremos:
+		//-> Matrz PROYECCION, define que tipo de proyeccion queremos:
 		//En este caso una perspectiva, que nos permitirá ver objetos en 3D con profundidad.
 		glm::mat4 projection;
 		projection = glm::perspective(glm::radians(camara->GetFOV()), (float)(screenWidth / screenHeight), 0.1f, 100.0f); //angulo de fov, tamaño pantalla (tiene que ser un float), plano near, plano far.
 		GLint projLoc = glGetUniformLocation(myShader.Program, "projection");
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		//-> Matriz MODELO <-, pasa coordenadas de: LOCAL -> MUNDO:
+		//-> Matriz MODELO, pasa coordenadas de: LOCAL -> MUNDO:
+		//Aqui solo la estamos pasando al shader.
 		glm::mat4 model;
-		//Lo siguiente esta comentado porque lo repartimos entre los casos a la hora de dibujar.
-		//GLint modelLoc = glGetUniformLocation(myShader.Program, "model"); //Localizar matriz modelo en el shader
-		//model = glm::translate(model, glm::vec3(0.0f, -1.00f, 0.0f));
-		//model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		GLint modelLoc = glGetUniformLocation(myShader.Program, "model"); //Localizar matriz modelo en el shader
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection)); //Pasar la matriz
 
 		//Clearing color buffer array from OpenGL in order to ensure there is no colors being applied from last iteration:
 		//Also clearing Z-Buffer.
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//---------------
-		//DIBUJAR MODELO:
-		//---------------
-		//Adaptacion de la matriz modelo:
-		switch (modelShown) 
-		{
-		case 0: //Operaciones sobre el ciervo:
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); //Trasladar
-			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f)); //Escalar
-			break;
-		case 1: //Operaciones sobre la vaca:
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-			break;
-		case 2: //Operaciones sobre el sofa:
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-			model = glm::scale(model, glm::vec3(0.001f, 0.001f, 0.001f));
-			break;
-		default:
-			break;
-		}
+		//cube.drawCube();
+		//lightCube.drawCube();
 
-		//Pasar la matriz modelo adaptada segun el modelo previamente:
-		glUniformMatrix4fv(glGetUniformLocation(myShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glBindVertexArray(0);
 
-		//Dibujar modelos:
-		switch (modelShown)
-		{
-		case 0:
-			myModel0.Draw(myShader, GL_TRIANGLES); //Modelo de un ciervo
-			break;
-		case 1:
-			myModel1.Draw(myShader, GL_TRIANGLES); //Modelo de una especie de vaca/toro raro
-			break;
-		case 2:
-			myModel2.Draw(myShader, GL_TRIANGLES); //Modelo de un sofa
-			break;
-		default:
-			break;
-		}
-
-		// Intercambia el buffer con el de la ventana para mostrar el resultado en ventana:
+		//Cambia framebuffer por buffer de ventana:
 		glfwSwapBuffers(window);
 	}
 
@@ -265,14 +250,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	//Cierre de ventana:
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-
-	//Cambio de modelo:
-	if (key == GLFW_KEY_1 && action == GLFW_PRESS || key == GLFW_KEY_KP_1 && action == GLFW_PRESS)
-		modelShown = 0;
-	if (key == GLFW_KEY_2 && action == GLFW_PRESS || key == GLFW_KEY_KP_1 && action == GLFW_PRESS)
-		modelShown = 1;
-	if (key == GLFW_KEY_3 && action == GLFW_PRESS || key == GLFW_KEY_KP_1 && action == GLFW_PRESS)
-		modelShown = 2;
+	//Cambio de modo de dibujo:
+	if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+		wireframe = !wireframe;
+		cout << wireframe;
+	}
 
 	//------------------------------------------------
 	//INPUTS SIMULTANEOS - Estados de teclas pulsadas:

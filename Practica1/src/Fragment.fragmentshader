@@ -2,14 +2,26 @@
 
 //input data:
 
-in vec2 texCoord;
+in vec2 textureCoords;
 
 // Ouput data:
 
 out vec4 color;
 
-uniform sampler2D texture_diffuse1;
+uniform sampler2D dirtTexture; //Contiene nuestra textura dirt
+uniform sampler2D ironTexture; //Contiene nuestra textura iron
+
+uniform bool wireframe;
+uniform float merge;
 
 void main(){
-	color = vec4(texture(texture_diffuse1, texCoord));
+	//Hacer que las texturas se intercambien progresivamente:
+		    //La función mix, combina 2 texturas tal que así, donde el último parametro es el nivel de mezcla:
+	
+	if(!wireframe){//Solo aplicar textura si no estamos en modo wireframe
+	color = mix(texture(dirtTexture, textureCoords), texture(ironTexture, textureCoords), merge);
+	}
+	
+	//Aplicar una sola textura como color:
+    //color = texture(dirtTexture, textureCoords); //texture sampler, texture coordinate
 }
