@@ -3,9 +3,12 @@
 //input data:
 
 layout (location = 0) in vec3 position;
-layout (location = 1) in vec2 normals;
+layout (location = 1) in vec3 normal;
 
 // Ouput data:
+
+out vec3 FragPos;
+out vec3 Normal;
 
 //out vec2 textureCoords;
 
@@ -14,8 +17,15 @@ uniform mat4 view;
 uniform mat4 projection;
 
 void main(){
-
+	//Actualizar posicion de vertices:
 	gl_Position = projection * view * model * vec4(position, 1.0f); //Combinación de matrizes de transformación para 3D
-	//textureCoords = vec2(texCoord.x, 1.0f - texCoord.y); //Esto invierte la imagen, restando la altura de una textura (1) a la altura en Y del vertice de textura: 1- Y
+	//Obtener una posicion de fragmento:
+	FragPos = vec3(model * vec4(position, 1.0f));
+	//Muy Importante: Hay que adaptar tambien la orientacion de las normales mediante la NORMAL MATRIX, para que la iluminacion del fragmentshader funcione con cualquier rotacion y escalado:
+	Normal = mat3(transpose(inverse(model))) * normal; //El nuevo vector normal es el resultado de multiplicar la matriz interna superior izquierda de la matriz modelo (sacamos la 3x3 superior izquierda de la modelo 4x4) invertida y luego traspuesta, por la normal.
+							//Invertir una matriz es una accion costosa! Evitar a toda costa!
+							
+	//Si quisieramos preparar una textura:
+	//textureCoords = vec2(texCoord.x, 1.0f - texCoord.y); //Esto invierte la imagen, restando la altura de una textura (1) a la altura en Y del vertice de textura: 1- Y		
 }
 

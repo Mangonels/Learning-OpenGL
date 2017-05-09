@@ -116,6 +116,11 @@ glm::mat4 Camara::LookAt()
 	return lookAtMatrix;
 }
 
+glm::vec3 Camara::getPosition() 
+{
+	return this->cameraPos;
+}
+
 GLfloat Camara::GetFOV()
 {
 	return this->FOV;

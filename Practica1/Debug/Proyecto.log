@@ -1,55 +1,19 @@
-﻿Compilación iniciada a las 07/05/2017 23:16:54.
-     1>Proyecto "C:\Users\gandalf\Desktop\Backups Luz\Practica1\Proyecto.vcxproj" en el nodo 2 (Build destinos).
+﻿Compilación iniciada a las 08/05/2017 15:43:26.
+     1>Proyecto "C:\Users\gandalf\Desktop\Luz\Practica1\Proyecto.vcxproj" en el nodo 2 (Build destinos).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /I.\include\soil\src /I.\Common /I.\include\glm /I.\include\glfw\include /I.\include\glew\include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Camara.cpp Object.cpp Shader.cpp src\main.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /I.\include\soil\src /I.\Common /I.\include\glm /I.\include\glfw\include /I.\include\glew\include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt src\main.cpp
          main.cpp
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.h(41): warning C4244: 'inicializando': conversión de 'int' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.h(42): warning C4244: 'inicializando': conversión de 'int' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\src\main.cpp(212): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-         Shader.cpp
-         Object.cpp
-         Camara.cpp
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.h(41): warning C4244: 'inicializando': conversión de 'int' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.h(42): warning C4244: 'inicializando': conversión de 'int' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.cpp(59): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.cpp(60): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.cpp(64): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.cpp(65): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.cpp(66): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-     1>c:\users\gandalf\desktop\backups luz\practica1\camara.cpp(67): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-         Generando código...
+     1>c:\users\gandalf\desktop\luz\practica1\camara.h(43): warning C4244: 'inicializando': conversión de 'int' a 'GLfloat'; posible pérdida de datos
+     1>c:\users\gandalf\desktop\luz\practica1\camara.h(44): warning C4244: 'inicializando': conversión de 'int' a 'GLfloat'; posible pérdida de datos
+     1>c:\users\gandalf\desktop\luz\practica1\src\main.cpp(221): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\gandalf\Desktop\Backups Luz\Practica1\Debug\Practica1.exe" /INCREMENTAL /NOLOGO /LIBPATH:.\include\soil\lib /LIBPATH:.\include\glew\lib\Release\Win32 /LIBPATH:".\include\glfw\lib-vc2015" libSOIL.lib opengl32.lib glew32s.lib glfw3.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\gandalf\Desktop\Backups Luz\Practica1\Debug\Practica1.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\gandalf\Desktop\Backups Luz\Practica1\Debug\Practica1.lib" /MACHINE:X86 Debug\Camara.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\gandalf\Desktop\Luz\Practica1\Debug\Practica1.exe" /INCREMENTAL /NOLOGO /LIBPATH:.\include\soil\lib /LIBPATH:.\include\glew\lib\Release\Win32 /LIBPATH:".\include\glfw\lib-vc2015" libSOIL.lib opengl32.lib glew32s.lib glfw3.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\gandalf\Desktop\Luz\Practica1\Debug\Practica1.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\gandalf\Desktop\Luz\Practica1\Debug\Practica1.lib" /MACHINE:X86 Debug\Camara.obj
          Debug\Object.obj
          Debug\Shader.obj
          Debug\main.obj
-     1>LINK : warning LNK4098: la biblioteca predeterminada'LIBCMT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
-     1>LINK : warning LNK4098: la biblioteca predeterminada'MSVCRT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewBindBuffer definido localmente
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewBufferData definido localmente
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewDeleteBuffers definido localmente
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewGenBuffers definido localmente
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewEnableVertexAttribArray definido localmente
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewVertexAttribPointer definido localmente
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewBindVertexArray definido localmente
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewDeleteVertexArrays definido localmente
-     1>Object.obj : warning LNK4049: se importó el símbolo ___glewGenVertexArrays definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewAttachShader definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewCompileShader definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewCreateProgram definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewCreateShader definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewDeleteShader definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewGetProgramInfoLog definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewGetProgramiv definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewGetShaderInfoLog definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewGetShaderiv definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewLinkProgram definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewShaderSource definido localmente
-     1>Shader.obj : warning LNK4049: se importó el símbolo ___glewUseProgram definido localmente
-     1>glew32s.lib(glew.obj) : warning LNK4099: no se encontró PDB 'vc120.pdb' con 'glew32s.lib(glew.obj)' o en 'C:\Users\gandalf\Desktop\Backups Luz\Practica1\Debug\vc120.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
-         Proyecto.vcxproj -> C:\Users\gandalf\Desktop\Backups Luz\Practica1\Debug\Practica1.exe
-     1>Compilación del proyecto terminada "C:\Users\gandalf\Desktop\Backups Luz\Practica1\Proyecto.vcxproj" (Build destinos).
+         Proyecto.vcxproj -> C:\Users\gandalf\Desktop\Luz\Practica1\Debug\Practica1.exe
+     1>Compilación del proyecto terminada "C:\Users\gandalf\Desktop\Luz\Practica1\Proyecto.vcxproj" (Build destinos).
 
 Compilación correcta.
 
-Tiempo transcurrido 00:00:13.16
+Tiempo transcurrido 00:00:05.83

@@ -26,6 +26,8 @@ public:
 	void MouseScroll(double xScroll, double yScroll);
 	//Función que genera la matriz lookAt que necesita la camara para decidir su siguiente posición y angulo de vision:
 	glm::mat4 LookAt();
+	//Obtener datos privados de la camara:
+	glm::vec3 getPosition();
 	//Nose para que queremos esta función, pero aquí esta, devuelve el FOV:
 	GLfloat GetFOV();
 	void SetDT(GLfloat deltatime);

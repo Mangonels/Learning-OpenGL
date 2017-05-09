@@ -54,6 +54,8 @@ float fov = 60.0f;
 float fovSens = 2.0f;
 float minFov = 20.0f;
 float maxFov = 80.0f;
+//Obtenemos posicion de la camara mediante metodo (Necesario para pasar a shaders mas abajo):
+glm::vec3 camaraPos = camara->getPosition();
 
 //Variables cubos:
 //CUBO:
@@ -187,9 +189,11 @@ int main() {
 	//Activar Z-Buffer (Buffer de profundidad de fragmentos)
 	glEnable(GL_DEPTH_TEST); //Esto comprobará que las caras de los poligonos no se fuckeen una encima de la otra, asegurando mostrar con prioridad las que están más cerca de la camara.
 
-	//Crear shaders de luz:
+	//Crear shaders:													  
+	//Shader para objetos:
 	Shader lightShader = Shader::Shader("./src/VertexLight.vertexshader", "./src/FragmentLight.fragmentshader");
-	Shader emitterShader = Shader::Shader("./src/VertexEmitter.vertexshader", "./src/FragmentEmitter.fragmentshader");
+	//Shader especifico para el cubo emisor de luz:
+	Shader emitterShader = Shader::Shader("./src/VertexEmitter.vertexshader", "./src/FragmentEmitter.fragmentshader"); //Color base, solo para el cubo de la luz
 
 	//Generating cube object with first transformations:
 	vec3 cubeScale = vec3(1.f, 1.f, 1.f);
@@ -220,16 +224,20 @@ int main() {
 		//Clearing color buffer array from OpenGL in order to ensure there is no colors being applied from last iteration:
 		//Also clearing Z-Buffer.
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 		//Aplicar lightShader (Shader especifico cubo):
 		lightShader.USE(); //Shaders para el CUBO
-			//Localizando las variables uniform de color del shader de luces e inicializandolas:
+			//Localizando las variables uniform de color del shader de luces e inicializandolas mediante transferencia:
 			//-------------------------
 			GLint objectColorLoc = glGetUniformLocation(lightShader.Program, "objectColor");
 			GLint lightColorLoc = glGetUniformLocation(lightShader.Program, "lightColor");
-			glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); //Color del objeto
-			glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f); //Color de la luz
+			GLint lightPosLoc = glGetUniformLocation(lightShader.Program, "lightPosition");
+			GLint viewPosLoc = glGetUniformLocation(lightShader.Program, "viewPos");
+			glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); //Enviar Color del objeto
+			glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f); //Enviar Color de la luz
+			glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z); //Enviar Posicion de la luz
+			glUniform3f(viewPosLoc, camaraPos.x, camaraPos.y, camaraPos.z); //Enviar Posicion de la camara
 			//-------------------------
 
 			//Ahora hay que adaptar las matrices para este shader:
