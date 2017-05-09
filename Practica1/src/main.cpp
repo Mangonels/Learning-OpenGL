@@ -19,6 +19,7 @@ using namespace std;
 #include "../Shader.h"
 #include "../Camara.h"
 #include "../Object.h"
+#include "../material.h"
 
 const GLint WIDTH = 800, HEIGHT = 600; //Dimensiones de la ventana que creamos mas adelante
 
@@ -207,7 +208,7 @@ int main() {
 	const GLchar* pointPath = "./src/FragmentPointLight.fragmentshader"; //Luz puntual
 	const GLchar* spotPath = "./src/FragmentSpotLight.fragmentshader"; //Luz focal														  
 	//Shader para objetos:
-	Shader lightShader = Shader::Shader("./src/VertexLight.vertexshader", spotPath); //<- Cambiar el tipo de fragshader segun disponibles arriba: Se trata del shader de reflejos de luz sobre objetos
+	Shader *lightShader = new Shader("./src/VertexLight.vertexshader", simplePath); //<- Cambiar el tipo de fragshader segun disponibles arriba: Se trata del shader de reflejos de luz sobre objetos
 	//Shader especifico para el cubo emisor de luz:
 	Shader emitterShader = Shader::Shader("./src/VertexEmitter.vertexshader", "./src/FragmentEmitter.fragmentshader"); //Color base, solo para el cubo de la luz
 
@@ -221,6 +222,11 @@ int main() {
 	vec3 lightCubeScale = vec3(0.1f, 0.1f, 0.1f);
 	vec3 lightCubeRotate = vec3(1.f, 1.f, 1.f);
 	Object lightCube(lightCubeScale, lightCubeRotate, lightPos); //CUBE B, la posicion es la posicion de la luz definida globalmente.
+
+	//Generacion de material:
+	Material material("./Materials/difuso.png", "./Materials/especular.png", 16);
+
+	material.SetMaterial(lightShader); //Pasar el shader por referencia a la clase material que le asigna una textura difusa y especular.
 
 	//BUCLE DE DIBUJO:
 	while (!glfwWindowShouldClose(window))
@@ -243,16 +249,18 @@ int main() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 		//Aplicar lightShader (Shader especifico cubo):
-		lightShader.USE(); //Shaders para el CUBO
+		lightShader->USE(); //Shaders para el CUBO
+		material.SetShininess(lightShader); //Pasar el shader por referencia a la clase material que le asigna el valor de brillo
+		material.ActivateTextures();
 			//Localizando las variables uniform de color del shader de luces, e inicializandolas mediante transferencia:
 			//-------------------------
-			GLint objectColorLoc = glGetUniformLocation(lightShader.Program, "objectColor");
-			GLint lightColorLoc = glGetUniformLocation(lightShader.Program, "lightColor");
-			GLint lightPosLoc = glGetUniformLocation(lightShader.Program, "lightPosition");
-			GLint lightDirPos = glGetUniformLocation(lightShader.Program, "lightDirection");
-			GLint lightSpotInnerCone = glGetUniformLocation(lightShader.Program, "innerConeRadius"); 
-			GLint lightSpotOuterCone = glGetUniformLocation(lightShader.Program, "outerConeRadius");
-			GLint viewPosLoc = glGetUniformLocation(lightShader.Program, "viewPos");
+			GLint objectColorLoc = glGetUniformLocation(lightShader->Program, "objectColor");
+			GLint lightColorLoc = glGetUniformLocation(lightShader->Program, "lightColor");
+			GLint lightPosLoc = glGetUniformLocation(lightShader->Program, "lightPosition");
+			GLint lightDirPos = glGetUniformLocation(lightShader->Program, "lightDirection");
+			GLint lightSpotInnerCone = glGetUniformLocation(lightShader->Program, "innerConeRadius"); 
+			GLint lightSpotOuterCone = glGetUniformLocation(lightShader->Program, "outerConeRadius");
+			GLint viewPosLoc = glGetUniformLocation(lightShader->Program, "viewPos");
 			glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); //Enviar Color del objeto
 			glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f); //Enviar Color de la luz
 			glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z); //Enviar Posicion de la luz
@@ -262,9 +270,9 @@ int main() {
 			glUniform3f(viewPosLoc, camaraPos.x, camaraPos.y, camaraPos.z); //Enviar Posicion de la camara
 
 			//Variables de calculo de atenuacion en point light:
-			glUniform1f(glGetUniformLocation(lightShader.Program, "constant"), constant);
-			glUniform1f(glGetUniformLocation(lightShader.Program, "linear"), linear);
-			glUniform1f(glGetUniformLocation(lightShader.Program, "quadratic"), quadratic);
+			glUniform1f(glGetUniformLocation(lightShader->Program, "constant"), constant);
+			glUniform1f(glGetUniformLocation(lightShader->Program, "linear"), linear);
+			glUniform1f(glGetUniformLocation(lightShader->Program, "quadratic"), quadratic);
 			//-------------------------
 
 			//Ahora hay que adaptar las matrices para este shader:
@@ -273,9 +281,9 @@ int main() {
 			 cube.Translate(glm::vec3(cubeTranslate.x + cubePosOffsetX, cubeTranslate.y + cubePosOffsetY, cubeTranslate.z + cubePosOffsetZ)); //Cambiar posicion del cubo
 
 			//Localizar donde van las matrices:
-			GLint viewLoc = glGetUniformLocation(lightShader.Program, "view");
-			GLint projLoc = glGetUniformLocation(lightShader.Program, "projection");
-			GLint modelLoc = glGetUniformLocation(lightShader.Program, "model");
+			GLint viewLoc = glGetUniformLocation(lightShader->Program, "view");
+			GLint projLoc = glGetUniformLocation(lightShader->Program, "projection");
+			GLint modelLoc = glGetUniformLocation(lightShader->Program, "model");
 
 			//Matriz Vista:
 			glm::mat4 view = camara->LookAt(); //Trasladamos la escena en la dirección contraria hacia donde queremos mover la camara, causando el efecto de que la camara se ha movido:

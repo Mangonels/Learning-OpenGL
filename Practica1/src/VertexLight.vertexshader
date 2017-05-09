@@ -4,13 +4,14 @@
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
+layout (location = 2) in vec3 texCoord;
 
 // Ouput data:
 
 out vec3 FragPos;
 out vec3 Normal;
 
-//out vec2 textureCoords;
+out vec2 textureCoords;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -25,7 +26,7 @@ void main(){
 	Normal = mat3(transpose(inverse(model))) * normal; //El nuevo vector normal es el resultado de multiplicar la matriz interna superior izquierda de la matriz modelo (sacamos la 3x3 superior izquierda de la modelo 4x4) invertida y luego traspuesta, por la normal.
 							//Invertir una matriz es una accion costosa! Evitar a toda costa!
 							
-	//Si quisieramos preparar una textura:
-	//textureCoords = vec2(texCoord.x, 1.0f - texCoord.y); //Esto invierte la imagen, restando la altura de una textura (1) a la altura en Y del vertice de textura: 1- Y		
+	//Pasando coordenadas de textura:
+	textureCoords = vec2(texCoord.x, 1.0f - texCoord.y); //Esto invierte la imagen, restando la altura de una textura (1) a la altura en Y del vertice de textura: 1- Y		
 }
 

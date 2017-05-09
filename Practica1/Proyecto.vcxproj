@@ -20,12 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camara.cpp" />
+    <ClCompile Include="material.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camara.h" />
+    <ClInclude Include="material.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
