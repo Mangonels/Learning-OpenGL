@@ -58,6 +58,7 @@ float maxFov = 80.0f;
 glm::vec3 camaraPos = camara->getPosition();
 
 //Variables cubos:
+
 //CUBO:
 //Rotacion:
 GLfloat cubeRotateX = 0.0f;
@@ -67,13 +68,23 @@ GLfloat cubeRotateZ = 0.0f;
 GLfloat cubePosOffsetX = 0.0f;
 GLfloat cubePosOffsetY = 0.0f;
 GLfloat cubePosOffsetZ = 0.0f;
-//CUBO LUZ:
+
+//CUBO LUZ Y GENERACION DE LUZ:
 //Posicion:
 GLfloat lightPosOffsetX = 0.0f;
 GLfloat lightPosOffsetY = 0.0f;
 GLfloat lightPosOffsetZ = 0.0f;
 
 glm::vec3 lightPos(0.0f, 2.0f, 0.0f); //La posicion de la luz que usaremos tambien como posicion de traslado del cubo emisor de luz
+glm::vec3 lightDir(0.0f, -1.0f, 0.0f); //La direccion de la luz que usamos para todas las luces
+
+GLfloat spotLightInnerRadius = glm::cos(glm::radians(13.0f));
+GLfloat spotLightOuterRadius = glm::cos(glm::radians(20.0f));
+
+//Variables calculo de atenuacion de luz puntual:
+float constant = 1.0f; //Componente constante que asegura que el valor de atenuacion que genere la formula no sea menor a 1.
+float linear = 0.09f; //Se multiplica por la distancia, reduciendo la intensidad en estilo linear.
+float quadratic = 0.032f; //Se multiplica por el quadrante de la distancia y establece un descenso de intensidad para el origen de luz.
 
 static void error_callback(int error, const char* description)
 {
@@ -189,9 +200,14 @@ int main() {
 	//Activar Z-Buffer (Buffer de profundidad de fragmentos)
 	glEnable(GL_DEPTH_TEST); //Esto comprobará que las caras de los poligonos no se fuckeen una encima de la otra, asegurando mostrar con prioridad las que están más cerca de la camara.
 
-	//Crear shaders:													  
+	//Crear shaders:
+	//Posibles directorios segun el tipo de iluminacion que queramos:
+	const GLchar* simplePath = "./src/FragmentLight.fragmentshader"; //Luces ambiental, Difusa y Especular combinadas (Phong)
+	const GLchar* directionalPath = "./src/FragmentDirectionalLight.fragmentshader"; //Luz direccional
+	const GLchar* pointPath = "./src/FragmentPointLight.fragmentshader"; //Luz puntual
+	const GLchar* spotPath = "./src/FragmentSpotLight.fragmentshader"; //Luz focal														  
 	//Shader para objetos:
-	Shader lightShader = Shader::Shader("./src/VertexLight.vertexshader", "./src/FragmentLight.fragmentshader");
+	Shader lightShader = Shader::Shader("./src/VertexLight.vertexshader", spotPath); //<- Cambiar el tipo de fragshader segun disponibles arriba: Se trata del shader de reflejos de luz sobre objetos
 	//Shader especifico para el cubo emisor de luz:
 	Shader emitterShader = Shader::Shader("./src/VertexEmitter.vertexshader", "./src/FragmentEmitter.fragmentshader"); //Color base, solo para el cubo de la luz
 
@@ -228,16 +244,27 @@ int main() {
 
 		//Aplicar lightShader (Shader especifico cubo):
 		lightShader.USE(); //Shaders para el CUBO
-			//Localizando las variables uniform de color del shader de luces e inicializandolas mediante transferencia:
+			//Localizando las variables uniform de color del shader de luces, e inicializandolas mediante transferencia:
 			//-------------------------
 			GLint objectColorLoc = glGetUniformLocation(lightShader.Program, "objectColor");
 			GLint lightColorLoc = glGetUniformLocation(lightShader.Program, "lightColor");
 			GLint lightPosLoc = glGetUniformLocation(lightShader.Program, "lightPosition");
+			GLint lightDirPos = glGetUniformLocation(lightShader.Program, "lightDirection");
+			GLint lightSpotInnerCone = glGetUniformLocation(lightShader.Program, "innerConeRadius"); 
+			GLint lightSpotOuterCone = glGetUniformLocation(lightShader.Program, "outerConeRadius");
 			GLint viewPosLoc = glGetUniformLocation(lightShader.Program, "viewPos");
 			glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); //Enviar Color del objeto
 			glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f); //Enviar Color de la luz
 			glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z); //Enviar Posicion de la luz
+			glUniform3f(lightDirPos, lightDir.x, lightDir.y, lightDir.z); //Enviar Direccion para cualquier luz
+			glUniform1f(lightSpotInnerCone, spotLightInnerRadius); //Enviar angulo que determina el radio de apertura de la luz focal
+			glUniform1f(lightSpotOuterCone, spotLightOuterRadius); //Enviar angulo que determina el radio de apertura de la luz focal
 			glUniform3f(viewPosLoc, camaraPos.x, camaraPos.y, camaraPos.z); //Enviar Posicion de la camara
+
+			//Variables de calculo de atenuacion en point light:
+			glUniform1f(glGetUniformLocation(lightShader.Program, "constant"), constant);
+			glUniform1f(glGetUniformLocation(lightShader.Program, "linear"), linear);
+			glUniform1f(glGetUniformLocation(lightShader.Program, "quadratic"), quadratic);
 			//-------------------------
 
 			//Ahora hay que adaptar las matrices para este shader:

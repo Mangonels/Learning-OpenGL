@@ -26,19 +26,19 @@ void main(){
 	//2.El color que refleja un objeto es igual al color de la luz por el color del objeto:
 	//color = vec4(lightColor * objectColor, 1.0f);
 	
-	//3.Iluminacion ambiental como color (Se aplica un paso intermedio de intensidad que modifica la intensidad):
+	//3.Calculo Iluminacion ambiental como color (Se aplica un paso intermedio de intensidad que modifica la intensidad):
 	float intensidadAmbiental = 0.1f;
 	vec3 ambient = intensidadAmbiental * lightColor;
 	vec3 ambientResult = ambient * objectColor;
 	
-	//4.Iluminacion difusa:
+	//4.Calculo Iluminacion difusa:
 	vec3 norm = normalize(Normal); //Normalizar la normal de la cara del cubo.
 	vec3 lightDir = normalize(lightPosition - FragPos); //Obtener vector direccion NORMALIZADO de la luz.
 	float diff = max(dot(norm, lightDir), 0.0); //El dot product entre la normal y la direccion de la luz nos da la intensidad de la luz diusa (El angulo entre los 2 vectores previos). La funcion max se asegura de que el resultado no sea negativo (Color negativo wtf).
 	vec3 diffuse = diff * lightColor; //Esta intensidad la multiplicamos por el color de la luz y nos da parte del color que queremos mostrar en esa cara del cubo.
 	vec3 diffuseResult = (ambient + diffuse) * objectColor; //El color final es el color difuso + el ambiente calculado en '3' * el color base del objeto.
 	
-	//5.Iluminacion especular:
+	//5.Calculo Iluminacion especular:
 	float specularStrength = 0.5f;
 	vec3 viewDir = normalize(viewPos - FragPos); //Vector entre el fragmento y la posicion de la camara, es el vector que nos falta para la iluminacion especular.
 	vec3 reflectDir = reflect(-lightDir, norm); //Es el vector que refleja la luz simetricamente a la normal (esto se cnsigue con la funcion reflect especificando vector y normal.) la direccion de la luz es negativa ya que el reflejo PROVIENE del fragmento.

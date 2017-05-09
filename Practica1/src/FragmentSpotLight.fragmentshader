@@ -1,0 +1,67 @@
+#version 330 core
+
+//input data:
+
+//in vec2 textureCoords;
+in vec3 FragPos;
+in vec3 Normal;
+
+// Ouput data:
+
+out vec4 color;
+
+//uniform sampler2D laTextura; //Recibiria una textura
+
+uniform vec3 objectColor;
+uniform vec3 lightColor;
+uniform vec3 lightPosition;
+uniform vec3 lightDirection;
+uniform float innerConeRadius; //Este es el angulo que alcanza el foco en su maxima potencia, hay que compararlo con theta mas adelante
+uniform float outerConeRadius; //Este es el angulo que alcanza el foco en minima potencia luminica
+uniform vec3 viewPos;
+
+void main(){
+	
+	//Necesitamos algunos valores iniciales antes, para calcular la iluminacion focal:
+	//El siguiente vector lo he sacado del espacio que hay en iluminacion difusa, ya que necesitamos calcularlo antes:
+	vec3 lightDir = normalize(lightPosition - FragPos); //Obtener vector direccion NORMALIZADO de la luz.
+
+	float theta = dot(lightDir, normalize(-lightDirection)); //Obtener Theta, es un angulo obtenido multiplicando el vector que relaciona la posicion de la camara con la posicion del fragmento, por la direccion del foco en este caso.
+	
+	//Variables para calcular la intensidad luminica entre el radio interior y exterior del cono luminico del spot light
+	float epsilon = innerConeRadius - outerConeRadius;
+	float intensity = clamp((theta - outerConeRadius) /epsilon, 0.0, 1.0);
+	
+	//3.Calculo Iluminacion ambiental como color (Se aplica un paso intermedio de intensidad que modifica la intensidad):
+	float intensidadAmbiental = 0.1f;
+	vec3 ambient = intensidadAmbiental * lightColor;
+	vec3 ambientResult = ambient * objectColor;
+	
+	//Los if son un una condicion de la iluminacion focal, las tecnicas de iluminacion son las mismas.
+	if(theta > outerConeRadius) //El fragmento esta dentro del foco: Esto es lo mismo que decir si el vector LightDir apunta a un fragmento que esta fuera del foco, por lo tanto sabemos que el fragmento esta dentro o fuera del alcance del foco.
+	{        //Por cierto, solo con cambiar inner outerConeRadius a innerConeRadius aplicamos o no el difuminado externo.
+
+		//4.Calculo Iluminacion difusa:
+		vec3 norm = normalize(Normal); //Normalizar la normal de la cara del cubo.
+		//En esta linea se calcularia la direccion de la luz, pero ya lo hemos hecho en el principio del main.
+		float diff = max(dot(norm, lightDir), 0.0); //El dot product entre la normal y la direccion de la luz nos da la intensidad de la luz diusa (El angulo entre los 2 vectores previos). La funcion max se asegura de que el resultado no sea negativo (Color negativo wtf).
+		vec3 diffuse = diff * lightColor; //Esta intensidad la multiplicamos por el color de la luz y nos da parte del color que queremos mostrar en esa cara del cubo.
+		diffuse *= intensity;
+		vec3 diffuseResult = (ambient + diffuse) * objectColor; //El color final es el color difuso + el ambiente calculado en '3' * el color base del objeto.
+		
+		//5.Calculo Iluminacion especular:
+		float specularStrength = 0.5f;
+		vec3 viewDir = normalize(viewPos - FragPos); //Vector entre el fragmento y la posicion de la camara, es el vector que nos falta para la iluminacion especular.
+		vec3 reflectDir = reflect(-lightDir, norm); //Es el vector que refleja la luz simetricamente a la normal (esto se cnsigue con la funcion reflect especificando vector y normal.) la direccion de la luz es negativa ya que el reflejo PROVIENE del fragmento.
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32); //Como en difusa, el valor que queremos no debe ser negativo, y lo obtenemos calculando el angulo entre el vector viewDir y el reflectDir.
+		vec3 specular = specularStrength * spec * lightColor; //la especularidad sera igual a la fuerza con la que queremos aplicarla, por el valor de especularidad, por el color de la luz.
+		diffuse *= intensity;
+		vec3 specularResult = (ambient + diffuse + specular) * objectColor; //La iluminacion que aplicariamos finalmente seria la ambiental mas la difusa por la especular, multiplicadas por el color base del objeto.
+		
+		color = vec4(specularResult, 1.0f); //Aplicar iluminacion especular unicamente
+	}
+	else //El fragmento esta fuera del foco: Usar iluminacion ambiental unicamente:
+	{
+		color = vec4(ambientResult, 1.0f); //Aplicar iluminacion ambiental unicamente
+	}
+}

@@ -1,0 +1,64 @@
+#version 330 core
+
+//input data:
+
+//in vec2 textureCoords;
+in vec3 FragPos;
+in vec3 Normal;
+
+// Ouput data:
+
+out vec4 color;
+
+//uniform sampler2D laTextura; //Recibiria una textura
+
+uniform vec3 objectColor;
+uniform vec3 lightColor;
+uniform vec3 lightPosition;
+uniform vec3 viewPos;
+
+uniform float constant;
+uniform float linear;
+uniform float quadratic;
+
+void main(){
+
+	//Añadido a FragmentLight normal:
+	float distance = length(lightPosition - FragPos); //Este vector distancia se calcula como lightDir mas adelante, con la diferencia de que queremos la magnitud, de modo que no normalizamos.
+	float attenuation = 1.0f / (constant + linear * distance + quadratic * (distance * distance)); //Formula de la atenuacion para calcular la difusion de la point light:
+	//-------------------------------
+	
+	//3.Calculo Iluminacion ambiental como color (Se aplica un paso intermedio de intensidad que modifica la intensidad):
+	float intensidadAmbiental = 0.1f;
+	vec3 ambient = intensidadAmbiental * lightColor;
+	//Añadido a FragmentLight normal:
+	ambient *= attenuation;
+	//-------------------------------
+	vec3 ambientResult = ambient * objectColor;
+	
+	//4.Calculo Iluminacion difusa:
+	vec3 norm = normalize(Normal); //Normalizar la normal de la cara del cubo.
+	vec3 lightDir = normalize(lightPosition - FragPos); //Obtener vector direccion NORMALIZADO de la luz.
+	float diff = max(dot(norm, lightDir), 0.0); //El dot product entre la normal y la direccion de la luz nos da la intensidad de la luz diusa (El angulo entre los 2 vectores previos). La funcion max se asegura de que el resultado no sea negativo (Color negativo wtf).
+	vec3 diffuse = diff * lightColor; //Esta intensidad la multiplicamos por el color de la luz y nos da parte del color que queremos mostrar en esa cara del cubo.
+	//Añadido a FragmentLight normal:
+	diffuse *= attenuation;
+	//-------------------------------
+	vec3 diffuseResult = (ambient + diffuse) * objectColor; //El color final es el color difuso + el ambiente calculado en '3' * el color base del objeto.
+	
+	//5.Calculo Iluminacion especular:
+	float specularStrength = 0.5f;
+	vec3 viewDir = normalize(viewPos - FragPos); //Vector entre el fragmento y la posicion de la camara, es el vector que nos falta para la iluminacion especular.
+	vec3 reflectDir = reflect(-lightDir, norm); //Es el vector que refleja la luz simetricamente a la normal (esto se cnsigue con la funcion reflect especificando vector y normal.) la direccion de la luz es negativa ya que el reflejo PROVIENE del fragmento.
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32); //Como en difusa, el valor que queremos no debe ser negativo, y lo obtenemos calculando el angulo entre el vector viewDir y el reflectDir.
+	vec3 specular = specularStrength * spec * lightColor; //la especularidad sera igual a la fuerza con la que queremos aplicarla, por el valor de especularidad, por el color de la luz.
+	//Añadido a FragmentLight normal:
+	specular *= attenuation;
+	//-------------------------------
+	vec3 specularResult = (ambient + diffuse + specular) * objectColor; //La iluminacion que aplicariamos finalmente seria la ambiental mas la difusa por la especular, multiplicadas por el color base del objeto.
+	
+	//APLICAR ILUMINACION COMO COLOR:
+	//color = vec4(ambientResult, 1.0f); //Aplicar iluminacion ambiental unicamente
+    //color = vec4(diffuseResult, 1.0f); //Aplicar iluminacion difusa unicamente
+	color = vec4(specularResult, 1.0f); //Aplicar iluminacion especular unicamente
+}
