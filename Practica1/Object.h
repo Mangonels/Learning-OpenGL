@@ -1,8 +1,10 @@
 #pragma once
 #include <GL\glew.h>
-#include<glm.hpp>
+#include <glm.hpp>
 #include <gtc\matrix_transform.hpp>
+
 using namespace glm;
+
 #include "Shader.h"
 
 enum FigureType {
@@ -19,6 +21,9 @@ public:
 
 	mat4 generateModelMatrix();
 	vec3 getPosition();
+	vec3 getRotation();
+	vec3 getScale();
+
 	void drawCube();
 	void cleanupCube();
 

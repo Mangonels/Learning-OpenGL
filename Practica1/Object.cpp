@@ -88,8 +88,8 @@ Object::Object(vec3 theScale, vec3 theRotation, vec3 thePosition) {
 
 void Object::drawCube() {
 	glBindVertexArray(VAO);
-	glColor3f(0.5, 0.5, 0.5);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
 }
 void Object::Scale(vec3 theScale) {
 	this->scaling = theScale;
@@ -101,17 +101,25 @@ void Object::Translate(vec3 theTranslation) {
 	this->position = theTranslation;
 }
 
+vec3 Object::getPosition() {
+	return this->position;
+}
+
+vec3 Object::getRotation() {
+	return this->rotation;
+}
+
+vec3 Object::getScale() {
+	return this->scaling;
+}
+
 mat4 Object::generateModelMatrix() {
 	mat4 model;
 	model = translate(model, this->position);
 	model = rotate(model, radians(this->rotation.x), vec3(1, 0, 0));
-	model = rotate(model, radians(this->rotation.y), vec3(0, 1, 0));
+	model = rotate(model, radians(this->rotation.z), vec3(0, 0, 1));
 	model = scale(model, this->scaling);
 	return model;
-}
-
-vec3 Object::getPosition() {
-	return this->position;
 }
 
 void Object::cleanupCube() {

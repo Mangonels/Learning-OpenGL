@@ -27,12 +27,6 @@ const GLint WIDTH = 800, HEIGHT = 600; //Dimensiones de la ventana que creamos m
 //Los 2 primeros valores son puntos con los que la clase forma los vectores que necesitamos para la camara:
 Camara* camara = new Camara(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), 0.1f, 60.0f); //Posicion, Direccion, Sensibilidad de camara, fov de camara.
 
-bool wireframe = false; //Si la geometria deberia mostrarse en modo wireframe
-
-//Shaders para clipping 3D:
-const GLchar* vertexPath = "./src/Vertex.vertexshader";
-const GLchar* fragmentPath = "./src/Fragment.fragmentshader";
-
 //Definicion inicial de funciones manager de inputs:
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode); //Funcion rasteadora de inputs por teclado en la ventana 
 void mouse_move_input(GLFWwindow* window, double xpos, double ypos) 
@@ -48,31 +42,36 @@ void mouse_scroll_input(GLFWwindow* window, double xOffset, double yOffset)
 GLfloat deltaTime = 0.0f;
 GLfloat prevFrame = 0.0f;
 
-//Variables para el offset oscilatorio:
-bool incrementando = true;
-float elOffset = 0.0f;
-float offsetMaximo = 0.5f;
-
-//Variable para la función mix:
-float merge = 0.0;
-
-//Variables rotación cubo:
-float cubeAngleX = 1.0f;
-float cubeAngleY = 1.0f;
-
 //Variables posición ratón (para camara)
 GLfloat mPrevX = WIDTH/2, mPrevY = HEIGHT/2; //Componentes posicion previa del raton
 
-//Variables camara:
-
-	//Angulos de camara iniciales (Se influencian con el raton)
+//Variables de la camara:
+//Angulos de camara iniciales (Se influencian con el raton)
 float pitch = 0.0f; //(Arriba-Abajo  ejes: Y-X/Z)
 float yaw = -90.0f; //(Izquierda-Derecha  ejes: Z/X)
-    //Variable que contiene el angulo de field of vision (la modificamos en el multi input):
+//Variable que contiene el angulo de field of vision (la modificamos en el multi input):
 float fov = 60.0f;
 float fovSens = 2.0f;
 float minFov = 20.0f;
 float maxFov = 80.0f;
+
+//Variables cubos:
+//CUBO:
+//Rotacion:
+GLfloat cubeRotateX = 0.0f;
+GLfloat cubeRotateY = 0.0f;
+GLfloat cubeRotateZ = 0.0f;
+//Posicion:
+GLfloat cubePosOffsetX = 0.0f;
+GLfloat cubePosOffsetY = 0.0f;
+GLfloat cubePosOffsetZ = 0.0f;
+//CUBO LUZ:
+//Posicion:
+GLfloat lightPosOffsetX = 0.0f;
+GLfloat lightPosOffsetY = 0.0f;
+GLfloat lightPosOffsetZ = 0.0f;
+
+glm::vec3 lightPos(0.0f, 2.0f, 0.0f); //La posicion de la luz que usaremos tambien como posicion de traslado del cubo emisor de luz
 
 static void error_callback(int error, const char* description)
 {
@@ -82,34 +81,62 @@ static void error_callback(int error, const char* description)
 bool keys[1024]; //Guarda que teclas se estan pulsando, ya que el sistema de input de glfw no puede procesar más de 1 tecla a la vez.
 
 void multiInputChecker() { //Función para revisar diversos inputs simultaneos:
-	
-	//Incrementar o decrementar combinación de texturas:
-	if (keys[GLFW_KEY_1] && merge < 0.950f || keys[GLFW_KEY_KP_1] && merge < 0.950f) { //tecla 1
-		merge += 0.005f;
-		cout << "Valor de mix: " << merge << endl;
+
+	//Inputs de rotacion de cubo:
+
+	if (keys[GLFW_KEY_KP_8]) { // Rotacion frontal
+		cubeRotateX = glm::mod(cubeRotateX, 360.0f) + 0.3f;
+		cout << "Rotacion cubo A (X): " << cubeRotateX << endl;
 	}
-	if (keys[GLFW_KEY_2] && merge > 0.005f || keys[GLFW_KEY_KP_2] && merge > 0.005f) { //tecla 2
-		merge -= 0.005f;
-		cout << "Valor de mix: " << merge << endl;
+	if (keys[GLFW_KEY_KP_2]) { // Rotacion trasera
+		cubeRotateX = glm::mod(cubeRotateX, 360.0f) - 0.3f;
+		cout << "Rotacion cubo A (X): " << cubeRotateX << endl;
+	}
+	if (keys[GLFW_KEY_KP_4]) { // Rotacion lateral izquierda
+		cubeRotateZ = glm::mod(cubeRotateZ, 360.0f) - 0.3f;
+		cout << "Rotacion cubo A (Z): " << cubeRotateZ << endl;
+	}
+	if (keys[GLFW_KEY_KP_6]) { // Rotacion lateral derecha
+		cubeRotateZ = glm::mod(cubeRotateZ, 360.0f) + 0.3f;
+		cout << "Rotacion cubo A (Z): " << cubeRotateZ << endl;
 	}
 
 	//Inputs de movimiento de cubo:
 
 	if (keys[GLFW_KEY_LEFT]) { // Izquierda
-		cubeAngleY -= 1.0f;
-		cout << "Grados de rotacion cubo 1 (X): " << cubeAngleY << endl;
+		cubePosOffsetX -= 0.01f;
+		cout << "Posicion cubo A (X): " << cubePosOffsetX << endl;
 	}
 	if (keys[GLFW_KEY_RIGHT]) { // Derecha
-		cubeAngleY += 1.0f;
-		cout << "Grados de rotacion cubo 1 (X): " << cubeAngleY << endl;
+		cubePosOffsetX += 0.01f;
+		cout << "Posicion cubo A (X): " << cubePosOffsetX << endl;
 	}
 	if (keys[GLFW_KEY_UP]) { // Arriba
-		cubeAngleX -= 1.0f;
-		cout << "Grados de rotacion cubo 1 (Y): " << cubeAngleX << endl;
+		cubePosOffsetY += 0.01f;
+		cout << "Posicion cubo A (Y): " << cubePosOffsetY << endl;
 	}
 	if (keys[GLFW_KEY_DOWN]) { // Abajo
-		cubeAngleX += 1.0f;
-		cout << "Grados de rotacion cubo 1 (Y): " << cubeAngleX << endl;
+		cubePosOffsetY -= 0.01f;
+		cout << "Posicion cubo A (Y): " << cubePosOffsetY << endl;
+	}
+
+	//Inputs de movimiento de cubo luz:
+
+	if (keys[GLFW_KEY_F]) { // Izquierda
+		lightPosOffsetX -= 0.01f;
+		//cout << "Posicion cubo B (X): " << lightPosOffsetX << endl;
+	}
+	if (keys[GLFW_KEY_H]) { // Derecha
+		lightPosOffsetX += 0.01f;
+		//cout << "Posicion cubo B (X): " << lightPosOffsetX << endl;
+	}
+	if (keys[GLFW_KEY_T]) { // Arriba
+		lightPosOffsetY += 0.01f;
+		//cout << "Posicion cubo B (Y): " << lightPosOffsetY << endl;
+	}
+	if (keys[GLFW_KEY_G]) { // Abajo
+		lightPosOffsetY -= 0.01f;
+		//cout << "Posicion cubo B (Y): " << lightPosOffsetY << endl;
 	}
 }
 
@@ -160,26 +187,25 @@ int main() {
 	//Activar Z-Buffer (Buffer de profundidad de fragmentos)
 	glEnable(GL_DEPTH_TEST); //Esto comprobará que las caras de los poligonos no se fuckeen una encima de la otra, asegurando mostrar con prioridad las que están más cerca de la camara.
 
-	//Shaders loading object:
-	Shader myShader = Shader::Shader(vertexPath, fragmentPath);
+	//Crear shaders de luz:
+	Shader lightShader = Shader::Shader("./src/VertexLight.vertexshader", "./src/FragmentLight.fragmentshader");
+	Shader emitterShader = Shader::Shader("./src/VertexEmitter.vertexshader", "./src/FragmentEmitter.fragmentshader");
 
-	//Generating cube object with transformations:
-	vec3 cubeScale = vec3(0.5, 0.5, 0.5);
-	vec3 cubeRotate = vec3(1, 1, 1);
-	vec3 cubeTranslate = vec3(-1.f, 0, 0);
-	Object cube(cubeScale, cubeRotate, cubeTranslate);
+	//Generating cube object with first transformations:
+	vec3 cubeScale = vec3(1.f, 1.f, 1.f);
+	vec3 cubeRotate = vec3(1.f, 1.f, 1.f);
+	vec3 cubeTranslate = vec3(0.f, 0.f, 0.f);
+	Object cube(cubeScale, cubeRotate, cubeTranslate); //CUBE A
 
-	//Generating light cube object with transformations:
-	vec3 lightCubeScale = vec3(1, 1, 1);
-	vec3 lightCubeRotate = vec3(2, 2, 2);
-	vec3 lightCubeTranslate = vec3(3, 0, 0);
-	Object lightCube(lightCubeScale, lightCubeRotate, lightCubeTranslate);
+	//Generating light cube object with first transformations:
+	vec3 lightCubeScale = vec3(0.1f, 0.1f, 0.1f);
+	vec3 lightCubeRotate = vec3(1.f, 1.f, 1.f);
+	Object lightCube(lightCubeScale, lightCubeRotate, lightPos); //CUBE B, la posicion es la posicion de la luz definida globalmente.
 
 	//BUCLE DE DIBUJO:
 	while (!glfwWindowShouldClose(window))
 	{
-		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
-		glfwPollEvents();
+		glfwPollEvents(); //Comprobar si se ha activado algun evento y ejecutar la funcion correspondiente (Las hemos definido antes fuera del main)
 		multiInputChecker(); //Llamando comprobación de inputs simultaneos
 
 		//Actualizando valores de tiempo:
@@ -191,47 +217,67 @@ int main() {
 		//Mirar si se ha pulsado alguna tecla que mueva la posicion de la camara:
 		camara->DoMovement();
 
-		//Mirar si el raton se ha movido para consecuentemente mover la camara:
-		void mouse_move_input(GLFWwindow* window, double xpos, double ypos);
-
-		//Mirar si se ha usado el scroll para consecuentemente cambiar el fov de camara:
-		void mouse_scroll_input(GLFWwindow* window, double xOffset, double yOffset);
-
-		myShader.USE();
-
-		//----------
-		//VISTA 3D:
-		//----------
-		//Convertir las coordenadas de nuestros vertices pasando por local > world > vew > clip, utilizando las matrizes modelo, vista y proyeccion en cada paso intermedio:
-
-		//-> Matriz VISTA, pasa coordenadas de: MUNDO -> VISTA:
-		//Trasladamos la escena en la dirección contraria hacia donde queremos mover la camara, causando el efecto de que la camara se ha movido:
-		glm::mat4 view;
-		view = camara->LookAt();
-		GLint viewLoc = glGetUniformLocation(myShader.Program, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)); //<Pasar matriz al shader
-
-		//-> Matrz PROYECCION, define que tipo de proyeccion queremos:
-		//En este caso una perspectiva, que nos permitirá ver objetos en 3D con profundidad.
-		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(camara->GetFOV()), (float)(screenWidth / screenHeight), 0.1f, 100.0f); //angulo de fov, tamaño pantalla (tiene que ser un float), plano near, plano far.
-		GLint projLoc = glGetUniformLocation(myShader.Program, "projection");
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		//-> Matriz MODELO, pasa coordenadas de: LOCAL -> MUNDO:
-		//Aqui solo la estamos pasando al shader.
-		glm::mat4 model;
-		GLint modelLoc = glGetUniformLocation(myShader.Program, "model"); //Localizar matriz modelo en el shader
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection)); //Pasar la matriz
-
 		//Clearing color buffer array from OpenGL in order to ensure there is no colors being applied from last iteration:
 		//Also clearing Z-Buffer.
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
-		//cube.drawCube();
-		//lightCube.drawCube();
+		//Aplicar lightShader (Shader especifico cubo):
+		lightShader.USE(); //Shaders para el CUBO
+			//Localizando las variables uniform de color del shader de luces e inicializandolas:
+			//-------------------------
+			GLint objectColorLoc = glGetUniformLocation(lightShader.Program, "objectColor");
+			GLint lightColorLoc = glGetUniformLocation(lightShader.Program, "lightColor");
+			glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); //Color del objeto
+			glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f); //Color de la luz
+			//-------------------------
 
-		glBindVertexArray(0);
+			//Ahora hay que adaptar las matrices para este shader:
+			//Ajustes sobre las posiciones del cubo para generar adecuadamente la matriz modelo:
+			 cube.Rotate(glm::vec3(cubeRotateX, cubeRotateY, cubeRotateZ));
+			 cube.Translate(glm::vec3(cubeTranslate.x + cubePosOffsetX, cubeTranslate.y + cubePosOffsetY, cubeTranslate.z + cubePosOffsetZ)); //Cambiar posicion del cubo
+
+			//Localizar donde van las matrices:
+			GLint viewLoc = glGetUniformLocation(lightShader.Program, "view");
+			GLint projLoc = glGetUniformLocation(lightShader.Program, "projection");
+			GLint modelLoc = glGetUniformLocation(lightShader.Program, "model");
+
+			//Matriz Vista:
+			glm::mat4 view = camara->LookAt(); //Trasladamos la escena en la dirección contraria hacia donde queremos mover la camara, causando el efecto de que la camara se ha movido:
+			//Matriz Proyeccion:
+			glm::mat4 projection = glm::perspective(glm::radians(camara->GetFOV()), (float)(screenWidth / screenHeight), 0.1f, 100.0f); //angulo de fov, tamaño pantalla (tiene que ser un float), plano near, plano far.
+			//Matriz Modelo:
+			glm::mat4 model = cube.generateModelMatrix(); //La matriz modelo la define el generador de matriz del cubo.
+
+			//Enviar matrices a sus localizaciones:
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		
+		//DIBUJAR CUBO:
+		cube.drawCube();
+
+		//Aplicar emitterShader (Shader especifico cubo emisor de luz)
+		emitterShader.USE();
+			//Ajustar uniforms en las localizaciones pertinentes:
+			//Localizar donde van las matrices:
+			modelLoc = glGetUniformLocation(emitterShader.Program, "model");
+			viewLoc = glGetUniformLocation(emitterShader.Program, "view");
+			projLoc = glGetUniformLocation(emitterShader.Program, "projection");
+
+			//Preparaciones en el cubo para la matriz modelo:
+			 lightCube.Translate(glm::vec3(lightPos.x /*+ lightPosOffsetX*/, lightPos.y /*+ lightPosOffsetY*/, lightPos.z /*+ lightPosOffsetZ*/)); //Descomentando los offsets podemos cambiar posicion del cubo luz																													  //Light cube model matrix adjustments:
+			 
+			//Cambiamos la matriz modelo, (las demas matrices pueden quedarse igual)
+			model = glm::mat4(lightCube.generateModelMatrix()); //Obtener una nueva matriz
+
+			//Enviar matrices a sus localizaciones:
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		//DIBUJAR CUBO DE LUZ:
+		lightCube.drawCube();
 
 		//Cambia framebuffer por buffer de ventana:
 		glfwSwapBuffers(window);
@@ -250,11 +296,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	//Cierre de ventana:
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-	//Cambio de modo de dibujo:
-	if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-		wireframe = !wireframe;
-		cout << wireframe;
-	}
 
 	//------------------------------------------------
 	//INPUTS SIMULTANEOS - Estados de teclas pulsadas:
